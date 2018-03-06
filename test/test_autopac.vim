@@ -33,12 +33,12 @@ function s:check(std, vut)
 endfunction
 
 function s:check_options(std)
-    let vut = autopac#options()
+    let vut = autopac#impl#options()
     call s:check(a:std, vut)
 endfunction
 
 function s:check_pluginfo(plug, std)
-    let vut = autopac#pluginfo(a:plug)
+    let vut = autopac#impl#pluginfo(a:plug)
     call s:check(a:std, vut)
 endfunction
 
@@ -71,35 +71,35 @@ let s:std_pluginfo =
 function Test_autopac_init()
     "redir! > test.log
     call delete('pack', 'rf')
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
 
     " Default setting
-    call autopac#init()
+    call autopac#impl#init()
     call s:check_options(s:std_options)
-    call assert_equal(0, len(autopac#pluglist()))
+    call assert_equal(0, len(autopac#impl#pluglist()))
 
     " Custom options, check that url and dir are paths are fixed
-    call autopac#init({"package":"mypacs", 'url':'http://example.com', 'dir': 'fakedir'})
+    call autopac#impl#init({"package":"mypacs", 'url':'http://example.com', 'dir': 'fakedir'})
     call s:check_options(
                 \extend({"package":"mypacs", 'url':'http://example.com/', 'dir':'fakedir/pack/'}
                 \, s:std_options, 'keep')
                 \)
-    call assert_equal(0, len(autopac#pluglist()))
+    call assert_equal(0, len(autopac#impl#pluglist()))
 
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
     "redir END
 endfunction
 
 function Test_autopac_add()
     "redir! > test.log
     call delete('pack', 'rf')
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
 
-    call autopac#init()
+    call autopac#impl#init()
 
     " Default plugin values
-    call autopac#add("example/abc")
-    call assert_equal(1, len(autopac#pluglist()))
+    call autopac#impl#add("example/abc")
+    call assert_equal(1, len(autopac#impl#pluglist()))
     call s:check_pluginfo('abc', extend( 
                 \{ 'package': 'autopac'
                 \, 'name':'abc'
@@ -109,8 +109,8 @@ function Test_autopac_add()
                 \, s:std_pluginfo, 'keep') )
 
     " Plugin in custom package
-    call autopac#add("http://git.nickel.local/example/abc", {'package':'colors'})
-    call assert_equal(1, len(autopac#pluglist()))
+    call autopac#impl#add("http://git.nickel.local/example/abc", {'package':'colors'})
+    call assert_equal(1, len(autopac#impl#pluglist()))
     call s:check_pluginfo('abc', extend( 
                 \{ 'package': 'colors'
                 \, 'name':'abc'
@@ -120,8 +120,8 @@ function Test_autopac_add()
                 \, s:std_pluginfo, 'keep') )
 
     " 
-    call autopac#add("file:///mydir/abc.git" )
-    call assert_equal(1, len(autopac#pluglist()))
+    call autopac#impl#add("file:///mydir/abc.git" )
+    call assert_equal(1, len(autopac#impl#pluglist()))
     call s:check_pluginfo('abc', extend( 
                 \{ 'package': 'autopac'
                 \, 'name':'abc'
@@ -131,7 +131,7 @@ function Test_autopac_add()
                 \, s:std_pluginfo, 'keep') )
 
 
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
     call delete('pack', 'rf')
     "redir END
 endfunction
@@ -146,7 +146,7 @@ endfunc
 function Test_autopac_get_packages()
     "redir! > test.log
     call delete('pack', 'rf')
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
 
 
     let plugs = [
@@ -165,7 +165,7 @@ function Test_autopac_get_packages()
 
 
     "get a reference to the function under test
-    let GetPackages =  autopac#function("get_packages")
+    let GetPackages =  autopac#impl#function("get_packages")
 
     " All plugins
     let p = GetPackages()
@@ -225,7 +225,7 @@ function Test_autopac_get_packages()
 
 
 
-    call autopac#clear_pluglist()
+    call autopac#impl#clear_pluglist()
     call delete('pack', 'rf')
     "redir END
 endfunction
