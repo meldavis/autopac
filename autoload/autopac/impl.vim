@@ -30,6 +30,7 @@ let s:remain_jobs = 0
 "       0 = results
 "--------------------------------------------------------------------------------
 function! autopac#impl#init(...) abort
+
     let s:options = extend(copy(get(a:000, 0, {})),
                 \{
                 \  'dir'            : ''
@@ -251,7 +252,7 @@ endfunction
 "   Ex with 'do' hook:
 "       update( 'p1', 'p2',  {'do': 'call mycallback()'})
 "------------------------------------------------------
-function! autopac#impl#update(...) 
+function! autopac#impl#update(...) abort
     if !s:check_initialization()
         return
     endif
