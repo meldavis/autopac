@@ -5,21 +5,25 @@ let s:joblist= []
 let s:remain_jobs = 0
 
 
-"---------------------------------------------------------------------------- }}} 
+"--------------------------------------------------- }}} 
 " PUBLIC:  init(...)                                 {{{
 "
-" Sets up global options and some defaults for plugins 
+" Sets up global options and some defaults for plugins.
+"
+" Plugins in the unmanaged packages will not cleaned or updated
+" automatically.
 "
 " Global autopac options - cannot be overridden by plugin 
-"   dir      - pack directory                = defaults to first directory in &packpath
-"   git      - git executable                = defaults to 'git'
-"   jobs     - max number of parallel jobs   = defaults to 8
-"   disabled - autopac had unrecoverable error
+"   dir        - pack directory                = defaults to first directory in &packpath
+"   unmanaged  - pkg names ignored by autopac  = defaults to ['unmanaged']
+"   git        - git executable                = defaults to 'git'
+"   jobs       - max number of parallel jobs   = defaults to 8
+"   disabled   - autopac had unrecoverable error
 "
 " Plugin default options
 "   package - default package name          = defaults to 'autopac'
 "   type    - default plugin type           = defaults to 'opt'
-"   url     - default domain url            = defaults to 'https://github.com'
+"   url     - default domain url            = defaults to 'https://github.com/'
 "   depth   - default repo depth            = defaults to 1
 "   frozen  - download, but never update    = defaults to 0
 "   verbose -                               = defaults to 1
@@ -34,6 +38,7 @@ function! autopac#impl#init(...) abort
     let s:options = extend(copy(get(a:000, 0, {})),
                 \{
                 \  'dir'            : ''
+                \, 'unmanaged'      : ['unmanaged']
                 \, 'git'            : 'git'
                 \, 'jobs'           : 8
                 \, 'disabled'       : 0
@@ -46,20 +51,16 @@ function! autopac#impl#init(...) abort
                 \}
                 \, 'keep')
 
+    " Convert unmanaged to a list, if it was provided as a string
+    if type(s:options.unmanaged) == v:t_string
+        let s:options.unmanaged = s:options.unmanaged == '' ? [] : [s:options.unmanaged]
+    endif
+
     " Define default pack dir. 
     if s:options.dir == '' && &packpath != ''
         let s:options.dir = split(&packpath, ',')[0]
     endif
     
-    " Ensure the pack dir ends in a '/'
-    if s:options.dir !~ "[/\\]$"
-        let s:options.dir = s:options.dir . '/'
-    endif 
-
-    " Add the 'pack' subdir 
-    if s:options.dir !~ "pack[\//]$"
-        let s:options.dir = s:options.dir .'pack/'
-    endif
 
     " Add trailing '/' to default domain url
     if s:options.url != '' && s:options.url !~ "/$" 
@@ -104,7 +105,7 @@ function! autopac#impl#add(plugname, ...) abort
 
     " URL (l:opt.url)
     if a:plugname =~? '^[-._0-9a-z]\+\/[-._0-9a-z]\+$'
-        " If it has a single '/', assume it is a github URL
+        " If it has a single '/', assume it is for the default domain
         let l:opt.url = s:options.url . a:plugname . '.git'
     else
         let l:opt.url = a:plugname
@@ -122,16 +123,16 @@ function! autopac#impl#add(plugname, ...) abort
 
     " Directory for repo (l:opt.dir)
     if l:opt.type ==# 'start'
-        let l:opt.dir = s:options.dir . l:opt.package . '/start/' . l:opt.name
+        let l:opt.dir = s:options.dir . '/pack/' . l:opt.package . '/start/' . l:opt.name
     elseif l:opt.type ==# 'opt'
-        let l:opt.dir = s:options.dir . l:opt.package . '/opt/' . l:opt.name
+        let l:opt.dir = s:options.dir . '/pack/' . l:opt.package . '/opt/' . l:opt.name
     else
         echoerr "Wrong type specified for plugin '". l:opt.name ."' (must be 'start' or 'opt'): " . l:opt.type
         return
     endif
 
     " If the pluginfo was previously added, silently replace it, unless 
-    " package or type changed.  In that case, warn first.
+    " its location changed.  In that case, warn first.
     if has_key(s:pluglist, l:opt.name)
         if s:pluglist[l:opt.name].package != l:opt.package
             echohl WarningMsg
@@ -169,7 +170,7 @@ endfunction
 " EX: clean( ...)
 "     clean('plugin')
 "     clean(p1', 'p2')
-"     clean(p1', 'p2', {'package': "colors"})
+"     clean([p1', 'p2'])
 "------------------------------------------------------
 function! autopac#impl#clean(...) abort
     if !s:check_initialization()
@@ -177,34 +178,38 @@ function! autopac#impl#clean(...) abort
     endif
 
     let l:names = []
-    let l:opts = {"package": s:options.package} 
 
     for l:v in a:000 
         if type(l:v) == v:t_string
             call add(l:names, l:v)
         elseif type(l:v) == v:t_list
             call extend(l:names, l:v)
-        elseif type(l:v) == v:t_dict
-            call extend(l:opts, l:v, 'force')
         else
-            echoerr 'Wrong parameter type. Must be string, list of strings or dictionary.'
+            echoerr 'Wrong parameter type. Must be string or list of strings.'
             return
         endif
     endfor
     call filter(l:names, 'v:val != ""')
 
-    let l:plugin_dirs = s:get_packages(l:opts.package)
+
+    " List of all plugins not in unmanaged directories
+    " This may include plugins not registered
+    let l:managed_plugins = len(s:options.unmanaged) == 0 ? s:get_packages() : 
+                \ filter(s:get_packages(), 
+                        \{-> !s:match_plugin(v:val, s:options.unmanaged , '*')})
 
     if len(l:names) > 0
-        let l:to_remove = filter(l:plugin_dirs,
-                    \ {-> s:match_plugin(v:val, l:opts.package, l:names)})
+        " Remove specific plugins
+        let l:to_remove = filter(l:managed_plugins,
+                    \ {-> s:match_plugin(v:val, '', l:names)})
     else
-        " Remove all plugins that are not registered.
+        " List of all registered plugins (keep these)
         let l:safelist = map(keys(s:pluglist),
-                    \ {-> s:pluglist[v:val].type . '/' . v:val})
+                    \ {-> s:pluglist[v:val].package . '/' . s:pluglist[v:val].type . '/' . v:val})
                     \ + ['opt/autopac']  " Don't remove itself.
-        let l:to_remove = filter(l:plugin_dirs,
-                    \ {-> !s:match_plugin(v:val, l:opts.package, l:safelist)})
+        
+        let l:to_remove = filter(l:managed_plugins,
+                    \ {-> !s:match_plugin(v:val, "*", l:safelist)})
     endif
 
     if len(l:to_remove) == 0
@@ -551,25 +556,57 @@ endfunction
 
 "-------------------------------------------------- }}} 
 " PRIVATE: match_plugin(dir, packname, plugnames)   {{{
+"    dir       =  string 
+"              => FULL PATH to a plugin path (path under test) 
+"    packname  =  list | string 
+"              => packname glob, 
+"                 if the  plugnames regex did not include a directory, use this 
+"                 (empty ~~ '*')
+"    plugnames =  list | string 
+"              => a glob for plugin names 
+"                 (empty ~~ '*') 
+"                 EX: 'plug1', 'opt/plug1', 'plug?', 'pack/*/plug1', '*/plag1'
+"
+"    This plugin constructs a regex of (possibly) packname and plugnames,
+"    Returns: true if a:dir matches any of the regex's
+"
 "--------------------------------------------------  
-function! s:match_plugin(dir, packname, plugnames) abort
-  let l:plugname = '\%(' . join(a:plugnames, '\|') . '\)'
-  let l:plugname = substitute(l:plugname, '\.', '\\.', 'g')
-  let l:plugname = substitute(l:plugname, '\*', '.*', 'g')
-  let l:plugname = substitute(l:plugname, '?', '.', 'g')
-  if l:plugname =~ '/'
-    let l:pat = '/pack/' . a:packname . '/' . l:plugname . '$'
-  else
-    let l:pat = '/pack/' . a:packname . '/\%(start\|opt\)/' . l:plugname . '$'
-  endif
-  if has('win32')
-    let l:pat = substitute(l:pat, '/', '[/\\\\]', 'g')
-    " case insensitive matching
-    return a:dir =~? l:pat
-  else
-    " case sensitive matching
-    return a:dir =~# l:pat
-  endif
+function! s:match_plugin(dir, pkgnames, plugnames) abort
+
+    let l:package = type(a:pkgnames) == v:t_list  
+        \ ? join(a:pkgnames, '\|') 
+        \ : a:pkgnames
+    let l:package = len(l:package) == 0 
+        \ ? '*' 
+        \ : '\%(' . l:package . '\)'
+    let l:package = substitute(l:package, '\.', '\\.', 'g')
+    let l:package = substitute(l:package, '\*', '.*', 'g')
+    let l:package = substitute(l:package, '?', '.', 'g')
+    
+    let l:plugnames = type(a:plugnames) == v:t_string ? [a:plugnames] : a:plugnames
+    for l:plugname in l:plugnames
+        let l:plugname = substitute(l:plugname, '\.', '\\.', 'g')
+        let l:plugname = substitute(l:plugname, '\*', '.*', 'g')
+        let l:plugname = substitute(l:plugname, '?', '.', 'g')
+
+        if l:plugname !~ '/'
+            let l:pat = '/pack/' . l:package  . '/\%(start\|opt\)/' . l:plugname . '$'
+        elseif l:plugname !~ '/.\+/'
+            let l:pat = '/pack/' . l:package . '/' .  l:plugname . '$'
+        else 
+            let l:pat = '/pack/' . l:plugname . '$'
+        endif
+
+        if has('win32')
+            let l:pat = substitute(l:pat, '/', '[/\\\\]', 'g')
+            " case insensitive matching
+            if a:dir =~? l:pat | return 1 | endif
+        else
+            " case sensitive matching
+            if  a:dir =~# l:pat | return 1 | endif 
+        endif
+    endfor
+
 endfunction
 
 "-------------------------------------------------- }}} 
@@ -577,7 +614,7 @@ endfunction
 "  All positional arguments are optional: 
 "     get_packages(
 "            <packname-regex>, 
-"            <packtype-regex> | NONE , 
+"            <packtype-regex> | 'NONE' , 
 "            <plugname-regex>, 
 "            <nameonly>  )
 "
@@ -587,6 +624,12 @@ endfunction
 " nameonly -returns names without the paths
 "--------------------------------------------------  
 function! s:get_packages(...) abort
+    " We have to have the packpath in autopac's global options to 
+    " avoid cleaning Vim's preinstalled packages
+    if !s:check_initialization()
+        return
+    endif
+
     let l:packname = get(a:000, 0, '')
     let l:packtype = get(a:000, 1, '')
     let l:plugname = get(a:000, 2, '')
@@ -602,7 +645,7 @@ function! s:get_packages(...) abort
         let l:pat = 'pack/' . l:packname . '/' . l:packtype . '/' . l:plugname
     endif
 
-    let l:ret = filter(globpath(&packpath, l:pat, 0 , 1), {-> isdirectory(v:val)})
+    let l:ret = filter(globpath(s:options.dir, l:pat, 0 , 1), {-> isdirectory(v:val)})
     if l:nameonly
         call map(l:ret, {-> substitute(v:val, '^.*[/\\]', '', '')})
     endif
@@ -743,7 +786,6 @@ endfunction
 
 "-------------------------------------------------- }}} 
 "==  TEST SUPPORT ================================= {{{
-"
 if !exists('g:autopac_debug')
     finish
 endif
@@ -764,11 +806,11 @@ endfunction
 "-------------------------------------------------- }}}
 "TEST: function()                                   {{{
 " Allow test to access private functions
-function! autopac#impl#function(name, ...)  
+function! autopac#impl#function(name)  
     if exists("*autopac#impl#".a:name)
-        return funcref("autopac#impl#".a:name, a:000)
+        return funcref("autopac#impl#".a:name)
     elseif exists("*s:".a:name)
-        return funcref("s:".a:name, a:000)
+        return funcref("s:".a:name)
     else
         throw "Unknown function:".a:name
     endif
