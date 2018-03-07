@@ -10,7 +10,7 @@ let s:remain_jobs = 0
 "
 " Sets up global options and some defaults for plugins.
 "
-" Plugins in the unmanaged packages will not cleaned or updated
+" Plugins in the unmanaged packages will not cleaned 
 " automatically.
 "
 " Global autopac options - cannot be overridden by plugin 
@@ -32,7 +32,7 @@ let s:remain_jobs = 0
 "       2 = prints error message when git command failed
 "       1 = prints update status for each plugin
 "       0 = results
-"--------------------------------------------------------------------------------
+"------------------------------------------------------
 function! autopac#impl#init(...) abort
 
     let s:options = extend(copy(get(a:000, 0, {})),
@@ -209,7 +209,7 @@ function! autopac#impl#clean(...) abort
                     \ + ['opt/autopac']  " Don't remove itself.
         
         let l:to_remove = filter(l:managed_plugins,
-                    \ {-> !s:match_plugin(v:val, "*", l:safelist)})
+                    \ {-> !s:match_plugin(v:val, "", l:safelist)})
     endif
 
     if len(l:to_remove) == 0
@@ -235,10 +235,11 @@ function! autopac#impl#clean(...) abort
             else
                 " try to delete empty 'type' folder (opt|start)
                 let l:parent = fnamemodify(l:item, ':p:h')
-                call delete(l:parent, 'd')
-                " try to delete empty 'package' folder
-                let l:parent = fnamemodify(l:parent, ':p:h')
-                call delete(l:parent, 'd')
+                if delete(l:parent, 'd')
+                    " try to delete empty 'package' folder
+                    let l:parent = fnamemodify(l:parent, ':p:h')
+                    call delete(l:parent, 'd')
+                endif
             endif
         endfor
         if has('nvim') && exists(':UpdateRemotePlugins') == 2
@@ -337,9 +338,9 @@ function! s:check_initialization() abort
 
     if s:options.package == ''
         echohl WarningMsg
-        echom "AutoPac's default package name cannot be empty. Setting it to 'autopac'"
+        echom "AutoPac's default package name cannot be empty. Setting it to 'managed'"
         echohl None
-        let s:options.package = 'autopac'
+        let s:options.package = 'managed'
     endif
 
     
@@ -572,9 +573,9 @@ endfunction
 "    plugnames =  list | string 
 "              => a glob for plugin names 
 "                 (empty ~~ '*') 
-"                 EX: 'plug1', 'opt/plug1', 'plug?', 'pack/*/plug1', '*/plag1'
+"                 EX: 'plug1', 'opt/plug1', 'plug?', 'mypackage/*/plug1', '*/plug1'
 "
-"    This plugin constructs a regex of (possibly) packname and plugnames,
+"    This function constructs a regex of (possibly) packname and plugnames,
 "    Returns: true if a:dir matches any of the regex's
 "
 "--------------------------------------------------  
@@ -814,10 +815,10 @@ endfunction
 "TEST: function()                                   {{{
 " Allow test to access private functions
 function! autopac#impl#function(name)  
-    if exists("*autopac#impl#".a:name)
-        return funcref("autopac#impl#".a:name)
-    elseif exists("*s:".a:name)
+    if exists("*s:".a:name)
         return funcref("s:".a:name)
+    elseif exists("*autopac#impl#".a:name)
+        return funcref("autopac#impl#".a:name)
     else
         throw "Unknown function:".a:name
     endif
