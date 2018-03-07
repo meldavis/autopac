@@ -11,7 +11,7 @@ function! autopac#pluginfo(name)
 endfunction
 
 function! autopac#clean(...) abort
-    call call("autopac#clean", a:000)
+    call call("autopac#impl#clean", a:000)
 endfunction
 
 function! autopac#update(...) abort
