@@ -5,44 +5,6 @@ set packpath=.
 let g:autopac_debug = 1
 runtime plugin/autopac.vim
 
-"------------------------------------
-" UTILITY FUNCTIONS
-"------------------------------------
-let s:key = ""
-
-function s:check(std, vut) 
-    call assert_equal(type(a:std), type(a:vut), printf("%sType mismatch", s:key))
-
-
-    if type(a:std) == v:t_dict
-        for key in keys(a:std) 
-            if type(a:std[key] == v:t_none) 
-                call assert_true(!has_key(a:vut, key), print("[Key %s] should not be present", key))
-            else
-                call assert_true(has_key(a:vut, key), printf("[Key %s]", key))
-                call assert_equal(type(a:std[key]), type(a:vut[key]), printf("[Key %s]", key))
-                let s:key = printf("[Key %s] ", key)
-                call s:check(a:std[key], a:vut[key])            
-                let s:key = ""
-            endif
-        endfor
-    elseif type(a:std) == v:t_string || type(a:std) == v:t_number
-        call assert_equal(a:std, a:vut, printf("%s", s:key))
-    endif
-    call assert_false(0, "Unexpected type")
-endfunction
-
-function s:check_options(std)
-    let vut = autopac#impl#options()
-    call s:check(a:std, vut)
-endfunction
-
-function s:check_pluginfo(plug, std)
-    let vut = autopac#impl#pluginfo(a:plug)
-    call s:check(a:std, vut)
-endfunction
-
-
 let s:std_options = 
             \{ 'package': 'autopac'
             \, 'dir': '.'
@@ -65,35 +27,23 @@ let s:std_pluginfo =
             \, 'verbose': s:std_options.verbose
             \, 'do'     : ''
             \}
+
+function s:check_pluginfo(name, exp)
+    let l:act = autopac#impl#pluginfo(a:name)
+    
+    for l:key in keys(a:exp)
+        call assert_true(has_key(l:act, l:key))
+        call assert_equal(a:exp[l:key], l:act[l:key]) 
+    endfor
+endfunction
+
+
 "------------------------------------
 " TESTS
 "------------------------------------
-function Test_autopac_init()
-    "redir! > test.log
-    call delete('pack', 'rf')
-    call autopac#impl#clear_pluglist()
-
-    " Default setting
-    call autopac#impl#init()
-    call s:check_options(s:std_options)
-    call assert_equal(0, len(autopac#impl#pluglist()))
-
-    " Custom options, check that url and dir are paths are fixed
-    call autopac#impl#init({"package":"mypacs", 'url':'http://example.com', 'dir': 'fakedir'})
-    call s:check_options(
-                \extend({"package":"mypacs", 'url':'http://example.com/', 'dir':'fakedir'}
-                \, s:std_options, 'keep')
-                \)
-    call assert_equal(0, len(autopac#impl#pluglist()))
-
-    call autopac#impl#clear_pluglist()
-    "redir END
-endfunction
-
 function Test_autopac_add()
     "redir! > test.log
     call delete('pack', 'rf')
-    call autopac#impl#clear_pluglist()
 
     call autopac#impl#init()
 
@@ -131,7 +81,6 @@ function Test_autopac_add()
                 \, s:std_pluginfo, 'keep') )
 
 
-    call autopac#impl#clear_pluglist()
     call delete('pack', 'rf')
     "redir END
 endfunction

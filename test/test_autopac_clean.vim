@@ -75,7 +75,7 @@ func Test_autopac_clean()
   " Remove all plugins in a package
   call assert_equal(1, isdirectory(plugs[6]))  " keep    colors/opt/plug6 - registered
   call feedkeys(":call autopac#impl#clean('colors/*/*')\<CR>y\<CR>", 'x')
-  call assert_equal(0, isdirectory(plugs[6]))  " keep    colors/opt/plug6 - registered
+  call assert_equal(0, isdirectory(plugs[6]))  " remove  colors/opt/plug6
 
   " all of our unmanaged plugins should still be there
   call assert_equal(1, isdirectory(plugs[8]))

@@ -15,7 +15,7 @@ endfunc
 
 function Test_autopac_get_packages()
     call delete('pack', 'rf')
-    call autopac#impl#clear_pluglist()
+    call autopac#init()
 
 
     let plugs = [
@@ -92,9 +92,6 @@ function Test_autopac_get_packages()
     let p = GetPackages('autopac', 'opt', 'plug1*', 1)
     call assert_equal(s:getnames(exp), sort(p))
 
-
-
-    call autopac#impl#clear_pluglist()
     call delete('pack', 'rf')
 endfunction
 

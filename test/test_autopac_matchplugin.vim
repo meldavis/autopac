@@ -58,7 +58,7 @@ function Test_autopac_matchplugin()
     call assert_true (MatchPlugin(p, ['zzz'],               ['*/start/plug0', 'plug1']))
     call assert_false(MatchPlugin(p, ['zzz'],               ['*/start/plug1', 'plug0']))
     call assert_true (MatchPlugin(p, ['autopac'],           ['*/start/plug1', 'plug0']))
-    call assert_true (MatchPlugin(p, ['zzz', 'autopac'],    ['*/start/plug1', 'plug0']))
+    call assert_true (MatchPlugin(p, ['autopac','zzzz'],    ['*/start/plug1', 'plug0']))
 
 endfunction
 

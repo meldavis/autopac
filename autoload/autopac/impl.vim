@@ -233,12 +233,9 @@ function! autopac#impl#clean(...) abort
                 echohl None
                 let err = 1
             else
-                " try to delete empty 'type' folder (opt|start)
-                let l:parent = fnamemodify(l:item, ':p:h')
-                if delete(l:parent, 'd')
-                    " try to delete empty 'package' folder
-                    let l:parent = fnamemodify(l:parent, ':p:h')
-                    call delete(l:parent, 'd')
+                " try to delete 'type' and pkg folders, if empty
+                if delete(fnamemodify(l:item, ':p:h'), 'd') == 0
+                    call delete(fnamemodify(l:item, ':p:h:h'), 'd')
                 endif
             endif
         endfor
@@ -338,9 +335,9 @@ function! s:check_initialization() abort
 
     if s:options.package == ''
         echohl WarningMsg
-        echom "AutoPac's default package name cannot be empty. Setting it to 'managed'"
+        echom "AutoPac's default package name cannot be empty. Setting it to 'autopac'"
         echohl None
-        let s:options.package = 'managed'
+        let s:options.package = 'autopac'
     endif
 
     
@@ -634,9 +631,6 @@ endfunction
 function! s:get_packages(...) abort
     " We have to have the packpath in autopac's global options to 
     " avoid cleaning Vim's preinstalled packages
-    if !s:check_initialization()
-        return
-    endif
 
     let l:packname = get(a:000, 0, '')
     let l:packtype = get(a:000, 1, '')

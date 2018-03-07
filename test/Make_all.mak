@@ -9,7 +9,8 @@ NO_INITS = -U NONE $(NO_PLUGINS)
 
 # Tests using runtest.vim.
 NEW_TESTS = \
-	    test_autopac.res \
+	    test_autopac_add.res \
+	    test_autopac_init.res \
 	    test_autopac_matchplugin.res \
 	    test_autopac_getpackages.res \
 	    test_autopac_update.res \
