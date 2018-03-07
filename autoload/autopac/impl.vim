@@ -801,11 +801,6 @@ function! autopac#impl#options()
     return exists('s:options') ? s:options : {}
 endfunction
 "-------------------------------------------------- }}}
-"TEST: clear_pluglist()                             {{{
-function! autopac#impl#clear_pluglist()  
-    let s:pluglist = {}
-endfunction
-"-------------------------------------------------- }}}
 "TEST: function()                                   {{{
 " Allow test to access private functions
 function! autopac#impl#function(name)  

@@ -6,7 +6,6 @@ runtime plugin/autopac.vim
 " Tests for autopac#impl#update()
 func Test_autopac_update()
     call delete('pack', 'rf')
-    call autopac#impl#clear_pluglist()
     call autopac#impl#init()
 
     " autopac#impl#update() with hooks using strings.

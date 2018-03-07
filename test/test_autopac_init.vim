@@ -42,7 +42,6 @@ function Test_autopac_init()
                 \)
     call assert_equal(0, len(autopac#impl#pluglist()))
 
-    call autopac#impl#clear_pluglist()
     "redir END
 endfunction
 
