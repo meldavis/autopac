@@ -4,8 +4,9 @@ function! s:load_plugin(bang, ...) abort
     let l:bang = a:bang ? '!' : ''
     for l:plug in a:000
         let l:plug = substitute(l:plug, "['\"]", "", "g" )
-        execut 'packadd' . l:bang . ' ' . l:plug
-        execut printf('runtime after/pack/%s.vim', l:plug)
+        execute 'packadd' . l:bang . ' ' . l:plug
+        execute printf('runtime! OPT %s/ftdetect/*.vim', l:plug)
+        execute printf('runtime after/pack/%s.vim', l:plug)
     endfor
 endfunction
 
@@ -25,8 +26,6 @@ command! -nargs=* PackClean  packadd autopac | runtime myplugins.vim  | call aut
 
 command! -bar -nargs=+ -bang -complete=packadd PackAdd call s:load_plugin(<bang>0, <f-args>)
 cabbrev packadd <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'PackAdd' : 'packadd')<CR>
-
-runtime! OPT ftdetect/*.vim
 
 augroup AutoPac
     au!
