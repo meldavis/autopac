@@ -388,7 +388,7 @@ function! s:update_single_plugin(name, force)
         let l:pluginfo.revision = ''
         call s:echo_verbose(3, 'Cloning ' . a:name)
 
-        let l:cmd = [s:options.git, 'clone', '--quiet', '--recurse-submodules', l:pluginfo.url, l:pluginfo.dir]
+        let l:cmd = [s:options.git, 'clone', '--quiet', '--recursive', l:pluginfo.url, l:pluginfo.dir]
         if l:pluginfo.depth > 0
             let l:cmd += ['--depth=' . l:pluginfo.depth]
         endif
@@ -405,7 +405,7 @@ function! s:update_single_plugin(name, force)
 
         call s:echo_verbose(3, 'Updating ' . a:name)
         let l:pluginfo.revision = s:get_plugin_revision(a:name)
-        let l:cmd = [s:options.git, '-C', l:pluginfo.dir, 'pull', '--quiet', '--ff-only' '--recurse-submodules']
+        let l:cmd = [s:options.git, '-C', l:pluginfo.dir, 'pull', '--quiet', '--ff-only', '--recurse-submodules']
     endif
 
     call s:echo_verbose(4, join(l:cmd))
