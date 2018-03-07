@@ -232,6 +232,13 @@ function! autopac#impl#clean(...) abort
                 echom 'Clean failed: ' . l:item
                 echohl None
                 let err = 1
+            else
+                " try to delete empty 'type' folder (opt|start)
+                let l:parent = fnamemodify(l:item, ':p:h')
+                call delete(l:parent, 'd')
+                " try to delete empty 'package' folder
+                let l:parent = fnamemodify(l:parent, ':p:h')
+                call delete(l:parent, 'd')
             endif
         endfor
         if has('nvim') && exists(':UpdateRemotePlugins') == 2
