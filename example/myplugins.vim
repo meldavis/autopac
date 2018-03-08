@@ -94,7 +94,7 @@ Plugin 'w0rp/ale'
 
 "||||||||||||||||||||||||||||||||||||||||||||||||||||||
 " These plugins will be loaded after vimrc. This is an 
-" alternative to installing in the 'start' folders.
+" alternative to installing into 'start' folders.
 "
 " Note the ! character
 " 
@@ -104,7 +104,6 @@ PackAdd! 'calendar' 'NERDCommenter'
 
 
 " Only load NERDTree when needed
-let g:NERDTreeBookmarksFile = $VIMDATA . '.NERDTreeBookmarks'
 if mapcheck("<F1>") == ""
     noremap  <silent>   <F1>       :if !exists('*NERDTreeToggle') <bar> :PackAdd 'nerdtree' <bar> :endif <bar> :NERDTreeToggle<CR><ESC>
     inoremap <silent>   <F1> <ESC> :if !exists('*NERDTreeToggle') <bar> :PackAdd 'nerdtree' <bar> :endif <bar> :NERDTreeToggle<CR><ESC>
