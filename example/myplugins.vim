@@ -35,7 +35,7 @@ let g:vimball_home      = expand('~/vimfiles/pack/unmanaged/opt/')
 " Colorschemes
 "===================================================
 " I rename themes so that they will appear last in the :packadd completions
-" I also put all themes in the 'color' package.
+" I also put all themes in the 'colors' package.
 "
 " Note: vim automactically searches the 'opt' packages for colorshemes. 
 " You should not put them in start unless they come with special plugins.
