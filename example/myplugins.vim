@@ -15,7 +15,7 @@
 "   g:vimball_home:
 "       I use a few of Dr.Chips plugins. They should be placed in an 
 "       unmanaged package so that PackClean will not delete them.
-"       When installing a vimball, first :let g:vimball_home = g:vimball_home."<plugname>"
+"       When installing a vimball, first :let g:vimball_home = g:vimball."<plugname>"
 "
 " Updating plugin list:
 "   After updating this file run:
@@ -29,7 +29,7 @@
 
 let g:packadd_cb        = 'myplugins#callback'
 let g:autopac_options   = {'package':'general'} 
-let g:vimball_home      = expand('~/vimfiles/pack/unmanaged/opt/')
+let g:vimball           = expand('~/vimfiles/pack/unmanaged/opt/')
 
 "===================================================
 " Colorschemes
