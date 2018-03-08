@@ -29,5 +29,15 @@ I changed the names of all functions from 'minpac' to autopac because:
   the original version at github.
 
 
+Note: 
+
+This version sets the default package type to "opt". I put all packages in 
+'opt' folders. If I want to autostart a plugin, I add this line to 
+my vimrc: 
+    packadd! <plugname>
+
+Notice the '!'.  I don't have to move plugins in and out of 'opt|start' 
+folders.
+
 
 This is for my personal use only.
