@@ -45,4 +45,6 @@ augroup AutoPac
     execute printf("runtime! %s", exists('g:autopac_plugins') ? g:autopac_plugins :  'myplugins.vim')
 augroup END
 
+"vim: ts=8 sw=4 et
+
 

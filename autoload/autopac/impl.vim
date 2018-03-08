@@ -1,5 +1,5 @@
 "{{{ 
-" vim: foldmarker={{{,}}} foldmethod=marker
+" vim: foldmarker={{{,}}} foldmethod=marker ts=8 sw=4 et
 let s:pluglist = {}
 let s:joblist= []
 let s:remain_jobs = 0
