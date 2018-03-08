@@ -1,6 +1,6 @@
 " vim: sw=4 et
 " NOTE: 
-"     Install into autopac into '~/pack/unmanaged/opt/'
+"     Install autopac into '~/pack/unmanaged/opt/'
 "     Include this line in your vimrc
 "          :runtime OPT autopac.vim
 
