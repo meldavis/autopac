@@ -15,7 +15,7 @@
 "   g:vimball_home:
 "       I use a few of Dr.Chips plugins. They should be placed in an 
 "       unmanaged package so that PackClean will not delete them.
-"       When installing a vimball, first ```let g:vimball_home = g:vimball_home."<plugname>"```
+"       When installing a vimball, first :let g:vimball_home = g:vimball_home."<plugname>"
 "
 " Updating plugin list:
 "   After updating this file run:
