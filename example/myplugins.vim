@@ -41,7 +41,7 @@ let g:vimball_home      = expand('~/vimfiles/pack/unmanaged/opt')
 " You should not put them in start unless they come with special plugins.
 
 Plugin 'NLKNguyen/papercolor-theme'             , {'package':'colors', 'name':'zz-papercolor'}
-Plugin 'morhetz/gruvbox'                        , {'package':'colors', 'name':'zz=gruvbox'}
+Plugin 'morhetz/gruvbox'                        , {'package':'colors', 'name':'zz-gruvbox'}
 Plugin 'dracula/vim'                            , {'package':'colors', 'name':'zz-dracula'}
 Plugin 'jnurmine/Zenburn'                       , {'package':'colors', 'name':'zz-zenburn'}
 Plugin 'sjl/badwolf'                            , {'package':'colors', 'name':'zz-badwolf'}
