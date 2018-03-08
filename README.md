@@ -10,7 +10,7 @@ This version lets plugins be installed into different package names.
 The changes in the actual code are few. However, so that I could
 understand the workflow, I significantly restructured the code.
 
-Some of the cosmetic or minor changes included:
+Some of the cosmetic or minor changes:
 
 * Reordered the functions
 * Moved some functions from the plugin file to the autoload file.
@@ -20,14 +20,11 @@ Some of the cosmetic or minor changes included:
 
 A major structural change is that I changed the names of all functions from 'minpac' to autopac because:
 
-* it kept me from accidently modifying the original "minpac" code when 
-  I thought I was modifying my version of it.
-* it prevents me from deleting the repo and still expecting to be able to duplicate it from 
-  the original version at github.
-
+* It kept me from accidentally modifying the original "minpac" code when I thought I was modifying my version of it.
+* It prevents me from deleting my repo and still expecting to be able to duplicate it from the original version at github.
 
 ### Example
-See [example/myplugins.vim] for an annotated example.
+See [example](example/myplugins.vim) for an annotated example.
 
 ### Credit
-Thanks to k-takata for an excellent plugin.
+Thanks to [k-takata](https://github.com/k-takata) for an excellent plugin.
