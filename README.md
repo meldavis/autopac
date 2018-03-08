@@ -20,14 +20,11 @@ Some of the cosmetic or minor changes included:
 
 A major structural change is that I changed the names of all functions from 'minpac' to autopac because:
 
-* it kept me from accidently modifying the original "minpac" code when 
-  I thought I was modifying my version of it.
-* it prevents me from deleting the repo and still expecting to be able to duplicate it from 
-  the original version at github.
-
+* it kept me from accidently modifying the original "minpac" code when I thought I was modifying my version of it.
+* it prevents me from deleting the repo and still expecting to be able to duplicate it from the original version at github.
 
 ### Example
-See [example/myplugins.vim] for an annotated example.
+See [example](example/myplugins.vim) for an annotated example.
 
 ### Credit
-Thanks to k-takata for an excellent plugin.
+Thanks to [k-takata](https://github.com/k-takata) for an excellent plugin.
