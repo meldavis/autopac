@@ -1,12 +1,26 @@
 " Do not use an include guard
 "--------------------------------------------------------------------------
+" If actions need to be taken before or after a call to PackAdd,
+" set g:packadd_cb to the name of a callback function with the following
+" signature:
+"
+"    function packadd_callback(plugname, before)
+"--------------------------------------------------------------------------
 function! s:load_plugin(bang, ...) abort 
-    let l:bang = a:bang ? '!' : ''
     for l:plug in a:000
         let l:plug = substitute(l:plug, "['\"]", "", "g" )
-        execute 'packadd' . l:bang . ' ' . l:plug
+
+        if exists('g:packadd_cb') && exists('*'.g:packadd_cb)
+            call call(g:packadd_cb, [l:plug, 1])
+        endif
+
+        execute printf('packadd%s %s', a:bang ? '!' : '', l:plug) 
+        
+        if exists('g:packadd_cb') && exists('*'.g:packadd_cb)
+            call call(g:packadd_cb, [l:plug, 0])
+        endif
+ 
         execute printf('runtime OPT %s/ftdetect/*.vim', l:plug)
-        execute printf('runtime after/pack/%s.vim', l:plug)
     endfor
 endfunction
 
@@ -28,7 +42,7 @@ cabbrev packadd <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'PackAdd' : 'packad
 "--------------------------------------------------------------------------
 augroup AutoPac
     au!
-    runtime! myplugins.vim
+    execute printf("runtime! %s", exists('g:autopac_plugins') ? g:autopac_plugins :  'myplugins.vim')
 augroup END
 
 
