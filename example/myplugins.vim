@@ -138,8 +138,7 @@ function! myplugins#callback(plugname, before)
     elseif a:plugname == "rust"
         if a:before
             let g:rustfmt_autosave = 1
-            PackAdd async asyncomplete asyncomplete-lsp vim-lsp 
-
+            
             if executable('rls')
                 au vimrc User lsp_setup call lsp#register_server({
                             \ 'name': 'rls',
@@ -147,6 +146,8 @@ function! myplugins#callback(plugname, before)
                             \ 'whitelist': ['rust'],
                             \ })
             endif 
+            
+            PackAdd async asyncomplete asyncomplete-lsp vim-lsp 
         endif
     endif
     "----------------------------------------------------------------------
