@@ -8,7 +8,7 @@ let s:remain_jobs = 0
 "--------------------------------------------------- }}} 
 " PUBLIC:  init(...)                                 {{{
 "
-" Sets up global options and some defaults for plugins.
+" Sets up global options and plugin defaults
 "
 " Plugins in the unmanaged packages will not cleaned 
 " automatically.
