@@ -26,15 +26,8 @@ A major structural change is that I changed the names of all functions from 'min
   the original version at github.
 
 
-### Note: 
+### Example
+See [example/myplugins.vim] for an annotated example.
 
-This version sets the default package type to "opt". I put all packages in 
-'opt' folders. If I want to autostart a plugin, I add this line to 
-my vimrc: 
-    ```packadd! <plugname>```
-
-Notice the '!'.  I don't have to move plugins in and out of 'opt|start' 
-folders.
-
-
-
+### Credit
+Thanks to k-takata for an excellent plugin.
