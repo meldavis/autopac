@@ -10,7 +10,7 @@
 "
 " By default, autopac installs plugins into 'pack/autopac/opt/'.
 " Autopac will not clean (delete) plugins in unmanaged packages, which
-" by default is 'pack/unmaanged/*'
+" by default is 'pack/unmanaged/*'
 "
 " In the settings below, 
 "   * I change the default package name from 'autopac' to 'general'.
@@ -118,11 +118,11 @@ au vimrc FileType rust PackAdd rust
 "   1. Provide a way to handle dependencies between plugins,
 "   2. Delay creating plugin settings until absolutely needed.
 "
-" NOTE: packadd fails silently if is a package does not exist. The only way to 
-" tell if a plugin is loaded is by checking for the existence  of 
-" plugin-specific functions or variables
+" NOTE: packadd fails silently if it is a package that does not exist. 
+" The only way to tell if a plugin is loaded is by checking for the 
+" existence of plugin-specific functions or variables.
 "
-" Most plugins have include-guards, so it should make little difference
+" Most plugins have include-guards, so often it should make little difference
 " if a package is added multiple times.
 "
 function! myplugins#callback(plugname, before)
