@@ -11,9 +11,11 @@ function! s:load_plugin(bang, ...) abort
         let l:plug = substitute(l:plug, "['\"]", "", "g" )
 
         if exists('g:packadd_cb') && exists('*'.g:packadd_cb)
-            call call(g:packadd_cb, [l:plug, 1])
+            if call(g:packadd_cb, [l:plug, 1]) != 0
+                continue
+            endif
         endif
-
+    
         execute printf('packadd%s %s', a:bang ? '!' : '', l:plug) 
         
         if exists('g:packadd_cb') && exists('*'.g:packadd_cb)

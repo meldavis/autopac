@@ -1,37 +1,27 @@
-" vim: sw=4 et
-" INSTALLATION: 
-"     Install autopac into '~/pack/unmanaged/opt/'
-"     Include this line in your vimrc
-"          :runtime OPT autopac.vim
+" INSTALL: 
+"   1. Clone the autopac repo into '~/pack/unmanaged/opt/'
+"   2. In your vimrc: add the following line:
+"       runtime OPT autopac.vim
+"   3. In your vimfiles folder, create a myplugins.vim 
 "
-" Some common settings:
-"   g:packadd_cb:
-"      Set this to a function name and create the function if you need
-"      special handling before/after a plugin is loaded
+" There is rarely a need to install packages in 'start' subfolders.
+" It is more flexible to install into 'opt' subfolders and 
+" then add calls to 'packadd! <plug>' to start plugins when vim starts.
 "
-"   g:autopac_options:
-"       I set my default package name to 'general'. (Default is 'autopac')
-"       By default, plugins are installed into an 'opt' subfolder.
-"       
-"   g:vimball:
-"       I use a few of Dr.Chips plugins. They should be placed in an 
-"       unmanaged package so that PackClean will not delete them.
-"       When installing a vimball, I first 
-"           :let g:vimball_home = g:vimball."/<plugname>"
+" By default, autopac installs plugins into 'pack/autopac/opt/'.
+" Autopac will not clean (delete) plugins in unmanaged packages, which
+" by default is 'pack/unmaanged/*'
 "
-" Updating plugin list:
-"   After updating this file run:
-"       :so % | PackUpdate
-"
-" No longer want a plugin?:
-"   Remove the Plugin <plug> line, save this file, and run:
-"       :so % | PackClean
-"   or
-"       :so % | PackClean '<plugname>'
+" In the settings below, 
+"   * I change the default package name from 'autopac' to 'general'.
+"   * I set a callback function that will handle dependencies 
+"       between plugins. (The function is defined at the end of this file.)
 
 let g:packadd_cb        = 'myplugins#callback'
 let g:autopac_options   = {'package':'general'} 
 let g:vimball           = expand('~/vimfiles/pack/unmanaged/opt/')
+
+augroup myplugins | au! | augroup END
 
 "===================================================
 " Colorschemes
@@ -40,7 +30,7 @@ let g:vimball           = expand('~/vimfiles/pack/unmanaged/opt/')
 " I also put all themes in the 'colors' package.
 "
 " Note: vim automactically searches the 'opt' packages for colorshemes. 
-" You almost never need to auto-start or packadd a colorscheme.
+" You almost never need to auto-start or packadd a colorscheme to use one.
 
 Plugin 'NLKNguyen/papercolor-theme'             , {'package':'colors', 'name':'zz-papercolor'}
 Plugin 'morhetz/gruvbox'                        , {'package':'colors', 'name':'zz-gruvbox'}
@@ -69,9 +59,10 @@ Plugin 'mattn/calendar-vim'                 , {'name':'calendar'}
 
 
 "===================================================
-" Async Utils
+" Async Util
 "===================================================
-"
+"Note: vim-lsp requires async, asyncomplete, asynccomplet-lsp
+
 Plugin 'prabirshrestha/async.vim'           , {'package':'async', 'name':'async'}
 Plugin 'prabirshrestha/vim-lsp'             , {'package':'async'}
 Plugin 'prabirshrestha/asyncomplete.vim'    , {'package':'async', 'name':'asyncomplete'}
@@ -82,7 +73,8 @@ Plugin 'skywind3000/asyncrun.vim'           , {'package':'async'}
 "===================================================
 " Rust Development
 "===================================================
-" Requires the first 4 async plugins, above. Optionally depends on syntastic.
+" The rust plugin requires vim-lsp
+
 Plugin 'rust-lang/rust.vim'                 , {'name':'rust'}                 
 
 
@@ -94,6 +86,8 @@ Plugin 'w0rp/ale'
 
 
 "||||||||||||||||||||||||||||||||||||||||||||||||||||||
+" AUTOSTART 
+"
 " These plugins will be loaded after vimrc. This is an 
 " alternative to installing into 'start' folders.
 "
@@ -101,7 +95,6 @@ Plugin 'w0rp/ale'
 " 
 PackAdd! 'calendar' 'nerdcommenter'
 "||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
 
 
 " Load NERDTree only when needed
@@ -117,38 +110,64 @@ endif
 au vimrc FileType rust PackAdd rust
 
 
-" This function is called before/after a plugin is loaded with PackAdd.
+
+" This function (named in g:packadd_cb) is called before/after a plugin 
+" is loaded with PackAdd. It is entirely optional.
+"
+" Its purpose is to 
+"   1. Provide a way to handle dependencies between plugins,
+"   2. Delay creating plugin settings until absolutely needed.
+"
+" NOTE: packadd fails silently if is a package does not exist. The only way to 
+" tell if a plugin is loaded is by checking for the existence  of 
+" plugin-specific functions or variables
+"
+" Most plugins have include-guards, so it should make little difference
+" if a package is added multiple times.
+"
 function! myplugins#callback(plugname, before)
+
+    if !a:before | return | endif
     "----------------------------------------------------------------------
+
     if a:plugname == "nerdtree"
-        if a:before
-            let g:NERDTreeBookmarksFile = $VIMDATA . '.NERDTreeBookmarks'
-            PackAdd 'vim-devicons' 'vim-nerdtree-syntax-highlight'
-        endif        
+        let g:NERDTreeBookmarksFile = $VIMDATA . '.NERDTreeBookmarks'
+        PackAdd 'vim-devicons' 'vim-nerdtree-syntax-highlight'
         "----------------------------------------------------------------------
-    elseif a:plugname == "asyncrun"      
-        if a:before
-            augroup ASYNCRUN
-                autocmd!
-                " Automatically open the quickfix window
-                autocmd User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
-            augroup END
-        endif
+
+    elseif a:plugname == "asyncrun"       
+        augroup packadd_asyncrun 
+            au! packadd_asyncrun User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
+        augroup packadd_asyncrun
         "----------------------------------------------------------------------
+    
     elseif a:plugname == "rust"
-        if a:before
-            let g:rustfmt_autosave = 1
-            
-            if executable('rls')
-                au vimrc User lsp_setup call lsp#register_server({
-                            \ 'name': 'rls',
-                            \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
-                            \ 'whitelist': ['rust'],
-                            \ })
-            endif 
-            
-            PackAdd async asyncomplete asyncomplete-lsp vim-lsp 
+        PackAdd vim-lsp 
+        "----------------------------------------------------------------------
+    
+    elseif a:plugname == "vim-lsp"
+        augroup packadd_vim_lsp | au! | augroup END
+
+        if executable('rls')
+            au packadd_vim_lsp User lsp_setup call lsp#register_server({
+                        \ 'name': 'rls',
+                        \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
+                        \ 'whitelist': ['rust'],
+                        \ })
+        endif 
+
+        if executable('pyls')
+            au packadd_vim_lsp User lsp_setup call lsp#register_server({
+                \ 'name': 'pyls',
+                \ 'cmd': {server_info->['pyls']},
+                \ 'whitelist': ['python'],
+                \ })
         endif
-    endif
+
+        
+        PackAdd async asyncomplete asyncomplete-lsp 
     "----------------------------------------------------------------------
+    
+    endif
 endfunction
+

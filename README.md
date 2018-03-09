@@ -4,6 +4,8 @@ This is a lightly modified version of the VIM plugin ['minpac'](https://github.c
 ### Reason for modifications
 
 This version lets plugins be installed into different package names.
+Also provides a way to handle dependencies between plugins when 
+using 'packadd'
 
 ### Types of Changes
 
