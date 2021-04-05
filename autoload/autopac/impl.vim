@@ -1,19 +1,19 @@
-"{{{ 
+"{{{
 " vim: foldmarker={{{,}}} foldmethod=marker ts=8 sw=4 et
 let s:pluglist = {}
 let s:joblist= []
 let s:remain_jobs = 0
 
 
-"--------------------------------------------------- }}} 
+"--------------------------------------------------- }}}
 " PUBLIC:  init(...)                                 {{{
 "
 " Sets up global options and plugin defaults
 "
-" Plugins in the unmanaged packages will not cleaned 
+" Plugins in the unmanaged packages will not cleaned
 " automatically.
 "
-" Global autopac options - cannot be overridden by plugin 
+" Global autopac options - cannot be overridden by plugin
 "   dir        - pack directory                = defaults to first directory in &packpath
 "   unmanaged  - pkg names ignored by autopac  = defaults to ['unmanaged']
 "   git        - git executable                = defaults to 'git'
@@ -56,14 +56,14 @@ function! autopac#impl#init(...) abort
         let s:options.unmanaged = s:options.unmanaged == '' ? [] : [s:options.unmanaged]
     endif
 
-    " Define default pack dir. 
+    " Define default pack dir.
     if s:options.dir == '' && &packpath != ''
         let s:options.dir = split(&packpath, ',')[0]
     endif
-    
+
 
     " Add trailing '/' to default domain url
-    if s:options.url != '' && s:options.url !~ "/$" 
+    if s:options.url != '' && s:options.url !~ "/$"
         let s:options.url = s:options.url . '/'
     endif
 
@@ -73,9 +73,9 @@ endfunction
 "--------------------------------------------------- }}}
 " PUBLIC:  add(plugin, ...)                          {{{
 "
-" Register plugin info 
+" Register plugin info
 "------------------------------------------------------
-function! autopac#impl#add(plugname, ...) abort 
+function! autopac#impl#add(plugname, ...) abort
 
     if !s:check_initialization()
         return
@@ -85,7 +85,7 @@ function! autopac#impl#add(plugname, ...) abort
                 \{
                 \  'package': s:options.package
                 \, 'name'   : ''
-                \, 'type'   : s:options.type 
+                \, 'type'   : s:options.type
                 \, 'frozen' : s:options.frozen
                 \, 'branch' : ''
                 \, 'depth'  : s:options.depth
@@ -95,11 +95,11 @@ function! autopac#impl#add(plugname, ...) abort
                 \,'keep')
 
     " Do not let user override package name with an empty string
-    if l:opt.package == '' 
+    if l:opt.package == ''
         let l:opt.package = s:options.package
     endif
 
-    " 
+    "
     " Calulate l:opt.url, l:opt.name, l:opt.dir
     "
 
@@ -131,23 +131,23 @@ function! autopac#impl#add(plugname, ...) abort
         return
     endif
 
-    " If the pluginfo was previously added, silently replace it, unless 
+    " If the pluginfo was previously added, silently replace it, unless
     " its location changed.  In that case, warn first.
     if has_key(s:pluglist, l:opt.name)
         if s:pluglist[l:opt.name].package != l:opt.package
             echohl WarningMsg
-            echom printf("Plugin (%s): Package changed from '%s' to '%s')", 
-                        \l:opt.name, s:pluglist[l:opt.name].package, l:opt.package) 
+            echom printf("Plugin (%s): Package changed from '%s' to '%s')",
+                        \l:opt.name, s:pluglist[l:opt.name].package, l:opt.package)
             echohl None
         elseif s:pluglist[l:opt.name].type != l:opt.type
             echohl WarningMsg
-            echom printf("Plugin (%s): Type changed from '%s' to '%s')", 
-                        \l:opt.name, s:pluglist[l:opt.name].type, l:opt.type) 
+            echom printf("Plugin (%s): Type changed from '%s' to '%s')",
+                        \l:opt.name, s:pluglist[l:opt.name].type, l:opt.type)
             echohl None
         elseif s:pluglist[l:opt.name].dir != l:opt.dir
             echohl WarningMsg
-            echom printf("Plugin (%s): Path changed from '%s' to '%s')", 
-                        \l:opt.name, s:pluglist[l:opt.name].dir, l:opt.dir) 
+            echom printf("Plugin (%s): Path changed from '%s' to '%s')",
+                        \l:opt.name, s:pluglist[l:opt.name].dir, l:opt.dir)
             echohl None
         endif
 
@@ -179,7 +179,7 @@ function! autopac#impl#clean(...) abort
 
     let l:names = []
 
-    for l:v in a:000 
+    for l:v in a:000
         if type(l:v) == v:t_string
             call add(l:names, l:v)
         elseif type(l:v) == v:t_list
@@ -194,8 +194,8 @@ function! autopac#impl#clean(...) abort
 
     " List of all plugins not in unmanaged directories
     " This may include plugins not registered
-    let l:managed_plugins = len(s:options.unmanaged) == 0 ? s:get_packages() : 
-                \ filter(s:get_packages(), 
+    let l:managed_plugins = len(s:options.unmanaged) == 0 ? s:get_packages() :
+                \ filter(s:get_packages(),
                         \{-> !s:match_plugin(v:val, s:options.unmanaged , '*')})
 
     if len(l:names) > 0
@@ -207,7 +207,7 @@ function! autopac#impl#clean(...) abort
         let l:safelist = map(keys(s:pluglist),
                     \ {-> s:pluglist[v:val].package . '/' . s:pluglist[v:val].type . '/' . v:val})
                     \ + ['opt/autopac']  " Don't remove itself.
-        
+
         let l:to_remove = filter(l:managed_plugins,
                     \ {-> !s:match_plugin(v:val, "", l:safelist)})
     endif
@@ -251,7 +251,7 @@ function! autopac#impl#clean(...) abort
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PUBLIC:  update(...)                              {{{
 "
 " Update all or specified plugins
@@ -314,15 +314,47 @@ function! autopac#impl#update(...) abort
     endfor
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
+" PUBLIC:  verbose(v)                             {{{
+"
+" Sets the global verbosity level
+"   Ex:
+"       verbose()           toggles verbosity
+"       verbose(0)          turns off global verbosity level
+"       verbose(1)          turns on global verbosity (max)
+"------------------------------------------------------
+function! autopac#impl#verbose(v=-1) abort
+    if a:v == -1
+        let l:verbose = get(g:, "autopac_verbose", 0)
+        if l:verbose == 0
+            let g:autopac_verbose = 1
+        else
+            let g:autopac_verbose = 0
+        endif
+    else
+        if a:v == 0
+            let g:autopac_verbose = 0
+        else
+            let g:autopac_verbose = 1
+        endif
+    endif
+    if g:autopac_verbose == 0
+        echo 'PackVerbose: Off'
+    else
+        echo 'PackVerbose: On'
+    endif
+endfunction
+
+
+"-------------------------------------------------- }}}
 " PRIVATE: check_initialization()                   {{{
 "
 " Checks autopac intialization
 "   Returns 1, if okay to continue
 "------------------------------------------------------
-function! s:check_initialization() abort 
-    
-    if !exists('s:options') 
+function! s:check_initialization() abort
+
+    if !exists('s:options')
         echohl WarningMsg
         echom 'AutoPac has not been initialized. Using the default values.'
         echohl None
@@ -340,7 +372,7 @@ function! s:check_initialization() abort
         let s:options.package = 'autopac'
     endif
 
-    
+
     if s:options.url == ''
         echohl WarningMsg
         echom "AutoPac's default repo url cannot be empty. Setting it to 'https://github.com/'"
@@ -352,7 +384,7 @@ function! s:check_initialization() abort
     if !isdirectory(s:options.dir)
         try
             call mkdir(s:options.dir, "p")
-        catch  
+        catch
             echoerr 'Failed to create pack directory: ' . v:exception
             echoerr 'Disabling AutoPac'
             let s:options.disabled = 1
@@ -374,7 +406,7 @@ endfunction
 " PRIVATE: update_single_plugin(name, force)        {{{
 "------------------------------------------------------
 
-function! s:update_single_plugin(name, force) 
+function! s:update_single_plugin(name, force)
     if !has_key(s:pluglist, a:name)
         echoerr 'Plugin not registered: ' . a:name
         call s:decrement_job_count()
@@ -388,7 +420,7 @@ function! s:update_single_plugin(name, force)
         let l:pluginfo.revision = ''
         call s:echo_verbose(3, 'Cloning ' . a:name)
 
-        let l:cmd = [s:options.git, 'clone', '--quiet', '--recursive', l:pluginfo.url, l:pluginfo.dir]
+        let l:cmd = [s:options.git, 'clone', '--quiet', '--shallow-submodules', l:pluginfo.url, l:pluginfo.dir]
         if l:pluginfo.depth > 0
             let l:cmd += ['--depth=' . l:pluginfo.depth]
         endif
@@ -405,7 +437,7 @@ function! s:update_single_plugin(name, force)
 
         call s:echo_verbose(3, 'Updating ' . a:name)
         let l:pluginfo.revision = s:get_plugin_revision(a:name)
-        let l:cmd = [s:options.git, '-C', l:pluginfo.dir, 'pull', '--quiet', '--ff-only', '--recurse-submodules']
+        let l:cmd = [s:options.git, '-C', l:pluginfo.dir, 'pull', '--quiet', '--ff-only']
     endif
 
     call s:echo_verbose(4, join(l:cmd))
@@ -414,9 +446,9 @@ function! s:update_single_plugin(name, force)
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: get_plugin_revision(name)                {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 " Get the revision of the specified plugin.
 function! s:get_plugin_revision(name) abort
     let l:pluginfo = s:pluglist[a:name]
@@ -434,9 +466,9 @@ function! s:get_plugin_revision(name) abort
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: start_job(cmds, name seq)                {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:start_job(cmds, name, seq) abort
     if len(s:joblist) > 1
         sleep 20m
@@ -467,9 +499,9 @@ function! s:start_job(cmds, name, seq) abort
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: decrement_job_count()                    {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:decrement_job_count()
     let s:remain_jobs -= 1
     if s:remain_jobs == 0
@@ -482,8 +514,12 @@ function! s:decrement_job_count()
 
         " Show the status.
         if s:error_plugins != 0
+            let l:extra = ''
+            if get(g:, 'autopac_verbose', 0) == 0
+                let l:extra = " (To troubleshoot, try ':PackVerbose 1' and rerun command.)"
+            endif
             echohl WarningMsg
-            echom 'Error plugins: ' . s:error_plugins
+            echom 'Error plugins: ' . s:error_plugins . l:extra
             echohl None
         else
             let l:mes = 'All plugins are up to date.'
@@ -503,28 +539,28 @@ function! s:decrement_job_count()
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: echo_verbose(level, msg)                 {{{
-"-------------------------------------------------- 
+"--------------------------------------------------
 function! s:echo_verbose(level, msg) abort
-    if s:options.verbose >= a:level
+    if (exists('g:autopac_verbose') && g:autopac_verbose != 0) || s:options.verbose >= a:level
         echo a:msg
     endif
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: echom_verbose(level, msg)                {{{
-"-------------------------------------------------- 
+"--------------------------------------------------
 function! s:echom_verbose(level, msg) abort
-  if s:options.verbose >= a:level
+  if (exists('g:autopac_verbose') && g:autopac_verbose != 0) || s:options.verbose >= a:level
     echom a:msg
   endif
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: quote_cmds(cmds)                         {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 if has('win32')
   function! s:quote_cmds(cmds)
     " If space is found, surround the argument with "".
@@ -539,9 +575,9 @@ else
 endif
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: system(cmds)                             {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 " Replacement for system().
 " This doesn't open an extra window on MS-Windows.
 function! s:system(cmds) abort
@@ -559,35 +595,35 @@ function! s:system(cmds) abort
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: match_plugin(dir, packname, plugnames)   {{{
-"    dir       =  string 
-"              => FULL PATH to a plugin path (path under test) 
-"    packname  =  list | string 
-"              => packname glob, 
-"                 if the  plugnames regex did not include a directory, use this 
+"    dir       =  string
+"              => FULL PATH to a plugin path (path under test)
+"    packname  =  list | string
+"              => packname glob,
+"                 if the  plugnames regex did not include a directory, use this
 "                 (empty ~~ '*')
-"    plugnames =  list | string 
-"              => a glob for plugin names 
-"                 (empty ~~ '*') 
+"    plugnames =  list | string
+"              => a glob for plugin names
+"                 (empty ~~ '*')
 "                 EX: 'plug1', 'opt/plug1', 'plug?', 'mypackage/*/plug1', '*/plug1'
 "
 "    This function constructs a regex of (possibly) packname and plugnames,
 "    Returns: true if a:dir matches any of the regex's
 "
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:match_plugin(dir, pkgnames, plugnames) abort
 
-    let l:package = type(a:pkgnames) == v:t_list  
-        \ ? join(a:pkgnames, '\|') 
+    let l:package = type(a:pkgnames) == v:t_list
+        \ ? join(a:pkgnames, '\|')
         \ : a:pkgnames
-    let l:package = len(l:package) == 0 
-        \ ? '*' 
+    let l:package = len(l:package) == 0
+        \ ? '*'
         \ : '\%(' . l:package . '\)'
     let l:package = substitute(l:package, '\.', '\\.', 'g')
     let l:package = substitute(l:package, '\*', '.*', 'g')
     let l:package = substitute(l:package, '?', '.', 'g')
-    
+
     let l:plugnames = type(a:plugnames) == v:t_string ? [a:plugnames] : a:plugnames
     for l:plugname in l:plugnames
         let l:plugname = substitute(l:plugname, '\.', '\\.', 'g')
@@ -598,7 +634,7 @@ function! s:match_plugin(dir, pkgnames, plugnames) abort
             let l:pat = '/pack/' . l:package  . '/\%(start\|opt\)/' . l:plugname . '$'
         elseif l:plugname !~ '/.\+/'
             let l:pat = '/pack/' . l:package . '/' .  l:plugname . '$'
-        else 
+        else
             let l:pat = '/pack/' . l:plugname . '$'
         endif
 
@@ -608,28 +644,28 @@ function! s:match_plugin(dir, pkgnames, plugnames) abort
             if a:dir =~? l:pat | return 1 | endif
         else
             " case sensitive matching
-            if  a:dir =~# l:pat | return 1 | endif 
+            if  a:dir =~# l:pat | return 1 | endif
         endif
     endfor
 
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: get_packages(args)                       {{{
-"  All positional arguments are optional: 
+"  All positional arguments are optional:
 "     get_packages(
-"            <packname-regex>, 
-"            <packtype-regex> | 'NONE' , 
-"            <plugname-regex>, 
+"            <packname-regex>,
+"            <packtype-regex> | 'NONE' ,
+"            <plugname-regex>,
 "            <nameonly>  )
 "
 "  <packpath>/pack/<packname>/<type>/<plugname>
 " Missing or empty string regex values are the same as "*"
 " NONE returns the package names instead of the plugin names
 " nameonly -returns names without the paths
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:get_packages(...) abort
-    " We have to have the packpath in autopac's global options to 
+    " We have to have the packpath in autopac's global options to
     " avoid cleaning Vim's preinstalled packages
 
     let l:packname = get(a:000, 0, '')
@@ -654,9 +690,9 @@ function! s:get_packages(...) abort
     return l:ret
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: generate_helptags(dir, force)            {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:generate_helptags(dir, force) abort
   if isdirectory(a:dir . '/doc')
     if a:force || len(glob(a:dir . '/doc/tags*', 1, 1)) == 0
@@ -665,9 +701,9 @@ function! s:generate_helptags(dir, force) abort
   endif
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " PRIVATE: invoke_hook(hooktype, args, hook)        {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:invoke_hook(hooktype, args, hook) abort
     if a:hook == ''
         return
@@ -698,17 +734,17 @@ function! s:invoke_hook(hooktype, args, hook) abort
     endtry
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " CALLBACK: system_out_cb(id, message, event)       {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:system_out_cb(id, message, event) dict abort
   let self.out += a:message
 endfunction
 
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " CALLBACK: job_err_cb(id, message, event)          {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:job_err_cb(id, message, event) dict abort
   echohl WarningMsg
   for l:line in a:message
@@ -717,9 +753,9 @@ function! s:job_err_cb(id, message, event) dict abort
   echohl None
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 " CALLBACK: job_exit_cb(id, message, event)         {{{
-"--------------------------------------------------  
+"--------------------------------------------------
 function! s:job_exit_cb(id, errcode, event) dict abort
     call filter(s:joblist, {-> v:val != a:id})
 
@@ -786,7 +822,7 @@ function! s:job_exit_cb(id, errcode, event) dict abort
     call s:decrement_job_count()
 endfunction
 
-"-------------------------------------------------- }}} 
+"-------------------------------------------------- }}}
 "==  TEST SUPPORT ================================= {{{
 if !exists('g:autopac_debug')
     finish
@@ -803,7 +839,7 @@ endfunction
 "-------------------------------------------------- }}}
 "TEST: function()                                   {{{
 " Allow test to access private functions
-function! autopac#impl#function(name)  
+function! autopac#impl#function(name)
     if exists("*s:".a:name)
         return funcref("s:".a:name)
     elseif exists("*autopac#impl#".a:name)

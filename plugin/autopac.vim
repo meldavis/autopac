@@ -2,7 +2,7 @@ function! autopac#init(...) abort
     call call("autopac#impl#init", a:000)
 endfunction
 
-function! autopac#add(plugname, ...) abort 
+function! autopac#add(plugname, ...) abort
     call call("autopac#impl#add", [a:plugname] + a:000)
 endfunction
 
@@ -16,5 +16,9 @@ endfunction
 
 function! autopac#update(...) abort
     call call("autopac#impl#update", a:000)
+endfunction
+
+function! autopac#verbose(...) abort
+    call call("autopac#impl#verbose", a:000)
 endfunction
 
